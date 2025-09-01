@@ -1,0 +1,6 @@
+Vector Embeddings and Nearest Neighbor Search
+Similarity Comparison: Cosine, Jacard
+Caching most popular searches (extension)
+
+
+# Initially account for 20 ingredients, further ingredients may require more substantial change in schema
