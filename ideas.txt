@@ -1,6 +1,6 @@
 Vector Embeddings and Nearest Neighbor Search
 Similarity Comparison: Cosine, Jacard
 Caching most popular searches (extension)
-
-
+- Exact vs partial matches (e.g in terms of ingredients or cooking tech)
+- Filtering: could filter out recipes that require unavailable ingredients or cooking tech or time
 # Initially account for 20 ingredients, further ingredients may require more substantial change in schema
