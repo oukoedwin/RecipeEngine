@@ -1,4 +1,4 @@
-
+from django.db import models
 
 class Invite(models.Model):
     class Status(models.TextChoices):

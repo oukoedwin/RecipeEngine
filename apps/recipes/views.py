@@ -2,10 +2,11 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from .models import Recipe
-from .forms import RecipeForm, RecipeSearchForm
+from .models import Recipe, RecipeLike
+from .forms import RecipeForm, RecipeSearchForm # TODO
 from .services import RecipeSearchService
 from apps.recommendations.services import RecipeEmbeddingService
+from django.core.cache import cache
 
 @login_required
 def recipe_list(request):
@@ -52,3 +53,16 @@ def recipe_like(request, pk):
         liked = True
     
     return JsonResponse({'liked': liked, 'like_count': recipe.recipelike_set.count()})
+
+
+def popular_recipes(request):
+    cache_key = 'popular_recipes'
+    recipes = cache.get(cache_key)
+    
+    if recipes is None:
+        recipes = Recipe.objects.annotate(
+            like_count=Count('recipelike')
+        ).order_by('-like_count')[:20]
+        cache.set(cache_key, recipes, 3600)  # Cache for 1 hour
+    
+    return render(request, 'recipes/popular.html', {'recipes': recipes})

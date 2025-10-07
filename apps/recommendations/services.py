@@ -1,6 +1,9 @@
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
 from django.conf import settings
+from apps.recipes.models import Recipe
+
+MAX_COOK_TIME = settings.MAX_COOK_TIME
 
 class RecipeEmbeddingService:
     INGREDIENTS_LIST = [f"Ing_{i}" for i in range(20)]  # Your predefined ingredients
@@ -12,8 +15,9 @@ class RecipeEmbeddingService:
         vector = np.zeros(len(cls.INGREDIENTS_LIST) + len(cls.COOKING_TECH) + 1)  # +1 for time
         
         # Ingredient encoding (binary or TF-IDF)
+        recipe_ingredients = set([ing.lower() for ing in recipe.ingredients])
         for i, ingredient in enumerate(cls.INGREDIENTS_LIST):
-            if ingredient.lower() in [ing.lower() for ing in recipe.ingredients]:
+            if ingredient.lower() in recipe_ingredients:
                 vector[i] = 1
         
         # Cooking technology encoding
@@ -22,8 +26,8 @@ class RecipeEmbeddingService:
             if tech in recipe.cooking_technologies:
                 vector[tech_offset + i] = 1
         
-        # Time normalization (0-1 scale, assuming max 240 minutes)
-        vector[-1] = min(recipe.time_minutes / 240.0, 1.0)
+        # Time normalization (0-1 scale, assuming max MAX_COOK_TIME minutes)
+        vector[-1] = min(recipe.time_minutes / MAX_COOK_TIME, 1.0)
         
         return vector.tolist()
     
@@ -33,7 +37,7 @@ class RecipeEmbeddingService:
         target_vector = np.array(target_recipe.embedding).reshape(1, -1)
         
         # Get all recipes with embeddings
-        recipes = Recipe.objects.exclude(id=target_recipe.id).exclude(embedding__exact=[])
+        recipes = Recipe.objects.exclude(id=target_recipe.id)
         
         similarities = []
         for recipe in recipes:

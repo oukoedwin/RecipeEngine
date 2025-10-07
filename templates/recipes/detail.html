@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Recipe by {{ recipe.creator.username }}</h1>
+
+{% if recipe.picture %}
+    <img src="{{ recipe.picture.url }}" width="300">
+{% endif %}
+
+<p><strong>Time:</strong> {{ recipe.time_minutes }} minutes</p>
+<p><strong>Ingredients:</strong> {{ recipe.ingredients|join:", " }}</p>
+<p><strong>Cooking Tech:</strong> {{ recipe.cooking_technologies|join:", " }}</p>
+<p><strong>Likes:</strong> <span id="like-count">{{ recipe.recipelike_set.count }}</span></p>
+
+{% if user.is_authenticated %}
+    <button onclick="likeRecipe({{ recipe.pk }})">
+        {% if user in recipe.recipelike_set.all.user %}Unlike{% else %}Like{% endif %}
+    </button>
+{% endif %}
+
+<script>
+function likeRecipe(recipeId) {
+    fetch(`/recipe/${recipeId}/like/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('like-count').textContent = data.like_count;
+    });
+}
+</script>
+
+<p><a href="{% url 'recipe_list' %}">Back to recipes</a></p>
+{% endblock %}

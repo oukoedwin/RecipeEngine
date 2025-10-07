@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Recipes</h1>
+
+<form method="get">
+    {{ form.as_p }}
+    <button type="submit">Search</button>
+    <a href="{% url 'recipe_list' %}">Clear</a>
+</form>
+
+<hr>
+
+{% for recipe in recipes %}
+    <div>
+        <h3><a href="{% url 'recipe_detail' recipe.pk %}">Recipe by {{ recipe.creator.username }}</a></h3>
+        <p>Time: {{ recipe.time_minutes }} min</p>
+        <p>Ingredients: {{ recipe.ingredients|join:", " }}</p>
+        <p>Tech: {{ recipe.cooking_technologies|join:", " }}</p>
+        <p>Likes: {{ recipe.recipelike_set.count }}</p>
+    </div>
+    <hr>
+{% empty %}
+    <p>No recipes found.</p>
+{% endfor %}
+{% endblock %}

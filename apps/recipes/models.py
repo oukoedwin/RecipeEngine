@@ -1,4 +1,5 @@
-
+from django.db import models
+from apps.accounts.models import User
 
 class Recipe(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_recipes')
