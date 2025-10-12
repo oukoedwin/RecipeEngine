@@ -45,3 +45,4 @@ recipe_project/
 3. Intermediate testing (difficult but find a way to do it)
 3. User Interface design
 4. Handling Images
+5. Incorporate approximate/fuzzy searching

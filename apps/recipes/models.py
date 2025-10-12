@@ -1,12 +1,12 @@
 from django.db import models
-from apps.accounts.models import User
+from django.contrib.auth.models import User
 
 class Recipe(models.Model):
     creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_recipes')
     ingredients = models.JSONField()  # List of ingredient names
     time_minutes = models.IntegerField()
     cooking_technologies = models.JSONField(default=list)
-    picture = models.ImageField(upload_to='recipes/', blank=True)
+    picture = models.ImageField(upload_to='static/', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

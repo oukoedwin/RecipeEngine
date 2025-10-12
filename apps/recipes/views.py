@@ -40,6 +40,10 @@ def recipe_create(request):
     
     return render(request, 'recipes/create.html', {'form': form})
 
+def recipe_detail(request, pk):
+    recipe = get_object_or_404(Recipe, pk=pk)
+    return render(request, 'recipes/detail.html', {'recipe': recipe})
+
 @require_http_methods(["POST"])
 @login_required
 def recipe_like(request, pk):

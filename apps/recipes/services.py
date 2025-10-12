@@ -1,6 +1,7 @@
 from django.db.models import Q, Count
 from .models import Recipe
 
+# TODO: Revise this to return only recipes that user all or a subset of the available recipes
 class RecipeSearchService:
     @classmethod
     def search_recipes(cls, ingredients=None, max_time=None, cooking_technologies=None, user=None):
