@@ -14,7 +14,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'apps.recipes'
+    'apps.recipes',
+    'apps.social',
+    'apps.accounts'
 ]
 
 STATIC_URL = '/static/'
@@ -36,13 +38,6 @@ DATABASES = {
 }
 
 DEBUG = True
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
 
 CACHES = {
     'default': {
@@ -79,4 +74,4 @@ MIDDLEWARE = [
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-# For vector operations, consider adding:
+AUTH_USER_MODEL = "accounts.User" 

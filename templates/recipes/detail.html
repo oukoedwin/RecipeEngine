@@ -16,6 +16,7 @@
     <button onclick="likeRecipe({{ recipe.pk }})">
         {% if user in recipe.recipelike_set.all.user %}Unlike{% else %}Like{% endif %}
     </button>
+    <a href="{% url 'invite_create' recipe.pk %}">Invite Friend</a>
 {% endif %}
 
 <script>

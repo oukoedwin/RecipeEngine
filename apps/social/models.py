@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+from apps.recipes.models import Recipe
 
 class Invite(models.Model):
     class Status(models.TextChoices):
@@ -11,5 +13,5 @@ class Invite(models.Model):
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     invite_date = models.DateField()
     invite_time = models.TimeField()
-    status = models.CharField(max_choices=Status.choices, default=Status.PENDING)
+    status = models.CharField(max_length=Status.choices, default=Status.PENDING)
     created_at = models.DateTimeField(auto_now_add=True)
