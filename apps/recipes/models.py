@@ -1,8 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
+# from django.contrib.auth.models import User
 
 class Recipe(models.Model):
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_recipes')
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_recipes')
     ingredients = models.JSONField()  # List of ingredient names
     time_minutes = models.IntegerField()
     cooking_technologies = models.JSONField(default=list)
@@ -14,7 +15,7 @@ class Recipe(models.Model):
     embedding = models.JSONField(default=list, blank=True)
     
 class RecipeLike(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     
