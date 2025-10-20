@@ -3,18 +3,42 @@
 # Exit immediately if a command exits with a non-zero status
 set -e
 
+env=${1:-"development"}
+
+$cmd = ""
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    $cmd = "brew" 
+else if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    $cmd = "sudo apt-get"
+fi
+
 # --- Step 1: Install and start PostgreSQL ---
 echo "Installing and starting PostgreSQL (if not already installed)..."
 if ! command -v psql &> /dev/null
 then
     echo "PostgreSQL not found, installing via Homebrew..."
-    brew install postgresql
+    $cmd install postgresql
 else
     echo "PostgreSQL already installed."
 fi
 
+if $env == "production"
+then
+    # Install nginx if not installed
+    if ! command -v nginx &> /dev/null
+    then
+        echo "Nginx not found, installing via Homebrew..."
+        $cmd install nginx 
+        cat ./nginx.conf > /etc/nginx/sites-available/recipe_app
+        sudo ln -s /etc/nginx/sites-available/recipe_app /etc/nginx/sites-enabled/
+        sudo systemctl restart nginx
+    else
+        echo "Nginx already installed."
+    fi
+fi
+
 # Start PostgreSQL service
-brew services start postgresql
+$cmd services start postgresql
 
 # --- Step 2: Create database and user ---
 echo "Setting up PostgreSQL user and database..."
@@ -49,5 +73,14 @@ export DJANGO_SUPERUSER_EMAIL=edwin@example.com
 python3 manage.py createsuperuser --noinput || echo "Superuser may already exist."
 
 # --- Step 6: Run the Django development server ---
-echo "Starting Django development server..."
-python3 manage.py runserver
+if $env == "production"
+then
+    echo "Starting Django production server..."
+    python3 manage.py collectstatic 
+    Read ./gunicorn.service and write to /etc/systemd/system/gunicorn.service
+    cat ./gunicorn.service > /etc/systemd/system/gunicorn.service
+    gunicorn --bind 0.0.0.0:8000 recipe_project.wsgi:application 
+else
+    echo "Starting Django development server..."
+    python3 manage.py runserver
+fi
