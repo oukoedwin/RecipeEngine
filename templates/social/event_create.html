@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Host a Dinner</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <p>
+        <label>Title:</label>
+        <input type="text" name="title" required>
+    </p>
+    <p>
+        <label>Date:</label>
+        <input type="date" name="date" required>
+    </p>
+    <p>
+        <label>Time:</label>
+        <input type="time" name="time" required>
+    </p>
+    <p>
+        <label>Location:</label>
+        <input type="text" name="location">
+    </p>
+
+    <h2>Dishes</h2>
+    <p>Pick recipes from your own or liked recipes to include as dishes on the menu:</p>
+    {% for recipe in recipes %}
+        <label>
+            <input type="checkbox" name="recipes" value="{{ recipe.pk }}">
+            {{ recipe.title }}
+        </label><br>
+    {% empty %}
+        <p>You haven't created or liked any recipes yet.</p>
+    {% endfor %}
+
+    <h2>Guests</h2>
+    <p>
+        <button type="button" onclick="selectAllFriends()">Select all friends</button>
+    </p>
+    {% for user in users %}
+        <label>
+            <input type="checkbox" name="recipients" value="{{ user.pk }}"
+                {% if user.pk in friend_ids %}data-friend="true"{% endif %}>
+            {{ user.username }}{% if user.pk in friend_ids %} (friend){% endif %}
+        </label><br>
+    {% endfor %}
+
+    <p><button type="submit">Create Dinner</button></p>
+</form>
+
+<script>
+function selectAllFriends() {
+    document.querySelectorAll('input[data-friend="true"]').forEach(function(cb) {
+        cb.checked = true;
+    });
+}
+</script>
+{% endblock %}

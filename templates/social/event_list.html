@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>My Dinners</h1>
+
+<p><a href="{% url 'event_create' %}">Host a new dinner</a></p>
+
+<h2>Hosting</h2>
+{% for event in hosting %}
+    <div>
+        <p><strong><a href="{% url 'event_detail' event.pk %}">{{ event.title }}</a></strong></p>
+        <p>{{ event.date }} at {{ event.time }}{% if event.location %} — {{ event.location }}{% endif %}</p>
+    </div>
+    <hr>
+{% empty %}
+    <p>You're not hosting any dinners yet.</p>
+{% endfor %}
+
+<h2>Invited</h2>
+{% for invite in invited %}
+    <div>
+        <p><strong><a href="{% url 'event_detail' invite.event.pk %}">{{ invite.event.title }}</a></strong></p>
+        <p>{{ invite.event.date }} at {{ invite.event.time }}</p>
+        <p>Status: {{ invite.status }}</p>
+    </div>
+    <hr>
+{% empty %}
+    <p>No dinner invites yet.</p>
+{% endfor %}
+{% endblock %}

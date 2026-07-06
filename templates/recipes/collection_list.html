@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>My Collections</h1>
+
+<p><a href="{% url 'collection_create' %}">Create a new collection</a></p>
+
+{% for collection in collections %}
+    <div>
+        <h3><a href="{% url 'collection_detail' collection.pk %}">{{ collection.name }}</a></h3>
+        <p>{{ collection.recipes.count }} recipe{{ collection.recipes.count|pluralize }}</p>
+    </div>
+    <hr>
+{% empty %}
+    <p>You haven't created any collections yet.</p>
+{% endfor %}
+{% endblock %}

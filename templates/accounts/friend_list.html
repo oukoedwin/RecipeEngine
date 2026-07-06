@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>My Friends</h1>
+
+<form method="post" action="{% url 'friend_add' %}">
+    {% csrf_token %}
+    <input type="text" name="username" placeholder="Enter a username" required>
+    <button type="submit">Add Friend</button>
+</form>
+
+<hr>
+
+{% for friendship in friendships %}
+    <div>
+        <span>{{ friendship.user2.username }}</span>
+        <form method="post" action="{% url 'friend_remove' friendship.pk %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit">Remove</button>
+        </form>
+    </div>
+{% empty %}
+    <p>You haven't added any friends yet.</p>
+{% endfor %}
+{% endblock %}

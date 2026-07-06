@@ -1,11 +1,15 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 MAX_COOK_TIME = 240.0  # Maximum cooking time in minutes
 
-ROOT_URLCONF = 'recipe_project.urls'
+ROOT_URLCONF = 'recipe.urls'
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -24,6 +28,9 @@ STATICFILES_DIRS = [
         os.path.join(BASE_DIR, 'static'),
     ]
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 DEFAULT_AUTO_FIELD='django.db.models.AutoField'
 
 DATABASES = { 
@@ -41,8 +48,7 @@ DEBUG = True
 
 CACHES = {
     'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
     }
 }
 
@@ -74,4 +80,7 @@ MIDDLEWARE = [
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-AUTH_USER_MODEL = "accounts.User" 
+AUTH_USER_MODEL = "accounts.User"
+
+LOGIN_REDIRECT_URL = 'recipe_list'
+LOGOUT_REDIRECT_URL = 'recipe_list'

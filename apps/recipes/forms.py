@@ -1,35 +1,66 @@
 from django import forms
-from .models import Recipe
+from .models import Recipe, RecipeComment, RecipeMade, RecipeCollection
+from .constants import INGREDIENT_CHOICES, COOKING_TECHNOLOGY_CHOICES, DIETARY_TAG_CHOICES
+
+INGREDIENT_FORM_CHOICES = [(i, i) for i in INGREDIENT_CHOICES]
+COOKING_TECH_FORM_CHOICES = [(t, t) for t in COOKING_TECHNOLOGY_CHOICES]
+DIETARY_TAG_FORM_CHOICES = [(t, t) for t in DIETARY_TAG_CHOICES]
+
 
 class RecipeForm(forms.ModelForm):
-    ingredients = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter ingredients, one per line'}),
-        help_text='List ingredients separated by commas or new lines'
+    ingredients = forms.MultipleChoiceField(
+        choices=INGREDIENT_FORM_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
     )
     cooking_technologies = forms.MultipleChoiceField(
-        choices=[('Oven', 'Oven'), ('Grill', 'Grill'), ('Microwave', 'Microwave')],
+        choices=COOKING_TECH_FORM_CHOICES,
         widget=forms.CheckboxSelectMultiple,
         required=False
     )
-    
+    dietary_tags = forms.MultipleChoiceField(
+        choices=DIETARY_TAG_FORM_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False
+    )
+
     class Meta:
         model = Recipe
-        fields = ['ingredients', 'time_minutes', 'cooking_technologies', 'picture']
+        fields = [
+            'title', 'instructions', 'servings', 'ingredients', 'time_minutes',
+            'cooking_technologies', 'dietary_tags', 'picture',
+        ]
         widgets = {
+            'instructions': forms.Textarea(attrs={'rows': 6, 'placeholder': 'Steps, one per line'}),
+            'servings': forms.NumberInput(attrs={'min': 1}),
             'time_minutes': forms.NumberInput(attrs={'min': 1, 'placeholder': 'Minutes'}),
         }
-    
-    def clean_ingredients(self):
-        # Convert text input to list
-        ingredients = self.cleaned_data['ingredients']
-        return [ing.strip() for ing in ingredients.replace('\n', ',').split(',') if ing.strip()]
 
 
 class RecipeSearchForm(forms.Form):
-    ingredients = forms.CharField(
+    MATCH_MODE_CHOICES = [('any', 'Any of these'), ('all', 'All of these')]
+    SORT_CHOICES = [
+        ('relevance', 'Most liked'),
+        ('newest', 'Newest'),
+        ('quickest', 'Quickest'),
+        ('closest_match', 'Closest match to my ingredients'),
+    ]
+
+    query = forms.CharField(
         required=False,
-        widget=forms.TextInput(attrs={'placeholder': 'Search ingredients...'}),
-        help_text='Comma-separated ingredients'
+        widget=forms.TextInput(attrs={'placeholder': 'Search by recipe title...'}),
+        label='Title',
+    )
+    ingredients = forms.MultipleChoiceField(
+        choices=INGREDIENT_FORM_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Ingredients on hand',
+    )
+    match_mode = forms.ChoiceField(
+        choices=MATCH_MODE_CHOICES,
+        required=False,
+        initial='any',
+        label='Match',
     )
     max_time = forms.IntegerField(
         required=False,
@@ -37,14 +68,44 @@ class RecipeSearchForm(forms.Form):
         label='Maximum cooking time'
     )
     cooking_technologies = forms.MultipleChoiceField(
-        choices=[('Oven', 'Oven'), ('Grill', 'Grill'), ('Microwave', 'Microwave')],
+        choices=COOKING_TECH_FORM_CHOICES,
         widget=forms.CheckboxSelectMultiple,
         required=False,
         label='Available cooking tech'
     )
-    
-    def clean_ingredients(self):
-        ingredients = self.cleaned_data.get('ingredients', '')
-        if ingredients:
-            return [ing.strip() for ing in ingredients.split(',') if ing.strip()]
-        return None
+    dietary_tags = forms.MultipleChoiceField(
+        choices=DIETARY_TAG_FORM_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label='Dietary needs',
+    )
+    sort = forms.ChoiceField(
+        choices=SORT_CHOICES,
+        required=False,
+        initial='relevance',
+        label='Sort by',
+    )
+
+
+class RecipeCommentForm(forms.ModelForm):
+    class Meta:
+        model = RecipeComment
+        fields = ['body']
+        widgets = {
+            'body': forms.Textarea(attrs={'rows': 2, 'placeholder': 'Add a comment...'}),
+        }
+
+
+class RecipeMadeForm(forms.ModelForm):
+    class Meta:
+        model = RecipeMade
+        fields = ['photo', 'note']
+        widgets = {
+            'note': forms.Textarea(attrs={'rows': 2, 'placeholder': 'How did it go?'}),
+        }
+
+
+class RecipeCollectionForm(forms.ModelForm):
+    class Meta:
+        model = RecipeCollection
+        fields = ['name']

@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Edit Recipe</h1>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+</form>
+
+<form method="post" action="{% url 'recipe_delete' recipe.pk %}" onsubmit="return confirm('Delete this recipe?');">
+    {% csrf_token %}
+    <button type="submit">Delete Recipe</button>
+</form>
+
+<p><a href="{% url 'recipe_detail' recipe.pk %}">Cancel</a></p>
+{% endblock %}

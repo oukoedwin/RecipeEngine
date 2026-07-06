@@ -1,15 +1,56 @@
 # apps/accounts/views.py
-from django.shortcuts import render, redirect
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth import login
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.contrib.auth import login, get_user_model
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_http_methods
+from .models import Friendship
+from .forms import CustomUserCreationForm
+
+User = get_user_model()
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             return redirect('recipe_list')
     else:
-        form = UserCreationForm()
+        form = CustomUserCreationForm()
     return render(request, 'registration/register.html', {'form': form})
+
+@login_required
+def friend_list(request):
+    friendships = Friendship.objects.filter(user1=request.user).select_related('user2')
+    return render(request, 'accounts/friend_list.html', {
+        'friendships': friendships,
+    })
+
+@login_required
+@require_http_methods(["POST"])
+def friend_add(request):
+    username = request.POST.get('username', '').strip()
+    try:
+        friend = User.objects.get(username=username)
+    except User.DoesNotExist:
+        messages.error(request, f"No user found with username '{username}'.")
+        return redirect('friend_list')
+
+    if friend == request.user:
+        messages.error(request, "You can't add yourself as a friend.")
+        return redirect('friend_list')
+
+    _, created = Friendship.objects.get_or_create(user1=request.user, user2=friend)
+    if created:
+        messages.success(request, f"Added {friend.username} as a friend.")
+    else:
+        messages.info(request, f"{friend.username} is already a friend.")
+    return redirect('friend_list')
+
+@login_required
+@require_http_methods(["POST"])
+def friend_remove(request, pk):
+    friendship = get_object_or_404(Friendship, pk=pk, user1=request.user)
+    friendship.delete()
+    return redirect('friend_list')

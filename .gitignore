@@ -1,5 +1,8 @@
 .venv
+.env
 .DS_Store
 *.sqlite3
 notes.md
 *__pycache__
+.pytest_cache
+.claude

@@ -1,22 +1,50 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Recipe by {{ recipe.creator.username }}</h1>
+<h1>{{ recipe.title }}</h1>
+<p>By {{ recipe.creator.username }}</p>
 
 {% if recipe.picture %}
     <img src="{{ recipe.picture.url }}" width="300">
 {% endif %}
 
+<p><strong>Servings:</strong> {{ recipe.servings }}</p>
 <p><strong>Time:</strong> {{ recipe.time_minutes }} minutes</p>
 <p><strong>Ingredients:</strong> {{ recipe.ingredients|join:", " }}</p>
 <p><strong>Cooking Tech:</strong> {{ recipe.cooking_technologies|join:", " }}</p>
+{% if recipe.dietary_tags %}
+    <p><strong>Dietary:</strong> {{ recipe.dietary_tags|join:", " }}</p>
+{% endif %}
+<p><strong>Instructions:</strong></p>
+<pre>{{ recipe.instructions }}</pre>
 <p><strong>Likes:</strong> <span id="like-count">{{ recipe.recipelike_set.count }}</span></p>
 
 {% if user.is_authenticated %}
-    <button onclick="likeRecipe({{ recipe.pk }})">
-        {% if user in recipe.recipelike_set.all.user %}Unlike{% else %}Like{% endif %}
+    <button id="like-button" onclick="likeRecipe({{ recipe.pk }})">
+        {% if user_has_liked %}Unlike{% else %}Like{% endif %}
     </button>
-    <a href="{% url 'invite_create' recipe.pk %}">Invite Friend</a>
+    <a href="{% url 'event_create' %}">Host a Dinner</a>
+    <a href="{% url 'recipe_made_add' recipe.pk %}">I made this</a>
+{% endif %}
+
+{% if user == recipe.creator %}
+    <a href="{% url 'recipe_edit' recipe.pk %}">Edit</a>
+{% endif %}
+
+{% if user_collections %}
+    <div>
+        <strong>Add to collection:</strong>
+        {% for collection in user_collections %}
+            <form method="post" action="{% url 'collection_toggle_recipe' collection.pk %}" style="display:inline">
+                {% csrf_token %}
+                <input type="hidden" name="recipe_id" value="{{ recipe.pk }}">
+                <button type="submit">
+                    {% if recipe in collection.recipes.all %}Remove from{% else %}Add to{% endif %}
+                    {{ collection.name }}
+                </button>
+            </form>
+        {% endfor %}
+    </div>
 {% endif %}
 
 <script>
@@ -31,9 +59,49 @@ function likeRecipe(recipeId) {
     .then(response => response.json())
     .then(data => {
         document.getElementById('like-count').textContent = data.like_count;
+        document.getElementById('like-button').textContent = data.liked ? 'Unlike' : 'Like';
     });
 }
 </script>
+
+{% if similar_recipes %}
+    <h2>Similar recipes</h2>
+    {% for similar in similar_recipes %}
+        <div>
+            <a href="{% url 'recipe_detail' similar.pk %}">{{ similar.title }}</a>
+            — {{ similar.ingredients|join:", " }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<h2>Made by others</h2>
+{% for made in made_posts %}
+    <div>
+        <p><strong>{{ made.user.username }}</strong> made this{% if made.note %}: {{ made.note }}{% endif %}</p>
+        {% if made.photo %}
+            <img src="{{ made.photo.url }}" width="200">
+        {% endif %}
+    </div>
+{% empty %}
+    <p>No one has posted about making this yet.</p>
+{% endfor %}
+
+<h2>Comments</h2>
+{% for comment in comments %}
+    <div>
+        <p><strong>{{ comment.user.username }}:</strong> {{ comment.body }}</p>
+    </div>
+{% empty %}
+    <p>No comments yet.</p>
+{% endfor %}
+
+{% if user.is_authenticated %}
+    <form method="post" action="{% url 'recipe_comment_add' recipe.pk %}">
+        {% csrf_token %}
+        {{ comment_form.as_p }}
+        <button type="submit">Add comment</button>
+    </form>
+{% endif %}
 
 <p><a href="{% url 'recipe_list' %}">Back to recipes</a></p>
 {% endblock %}

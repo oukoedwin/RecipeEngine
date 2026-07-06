@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ event.title }}</h1>
+<p>Hosted by {{ event.host.username }}</p>
+<p>{{ event.date }} at {{ event.time }}{% if event.location %} — {{ event.location }}{% endif %}</p>
+<p><a href="{% url 'event_ics' event.pk %}">Add to calendar (.ics)</a></p>
+
+{% if user_invite and user_invite.status == 'pending' %}
+    <form method="post" action="{% url 'event_respond' event.pk %}" style="display:inline">
+        {% csrf_token %}
+        <button name="action" value="accept">Accept</button>
+        <button name="action" value="decline">Decline</button>
+    </form>
+{% elif user_invite %}
+    <p>Your RSVP: {{ user_invite.status }}</p>
+{% endif %}
+
+<h2>Dishes</h2>
+{% for dish in dishes %}
+    <div>
+        <p>
+            <a href="{% url 'recipe_detail' dish.recipe.pk %}">{{ dish.recipe.title }}</a>
+            —
+            {% if dish.claimed_by %}
+                brought by {{ dish.claimed_by.username }}
+            {% else %}
+                up for grabs
+            {% endif %}
+        </p>
+        <form method="post" action="{% url 'event_dish_claim' dish.pk %}" style="display:inline">
+            {% csrf_token %}
+            {% if dish.claimed_by_id == user.pk %}
+                <button type="submit">Unclaim</button>
+            {% elif not dish.claimed_by %}
+                <button type="submit">I'll bring this</button>
+            {% endif %}
+        </form>
+    </div>
+    <hr>
+{% empty %}
+    <p>No dishes on the menu yet.</p>
+{% endfor %}
+
+<h2>Who's coming</h2>
+{% for invite in accepted_guests %}
+    <p>{{ invite.recipient.username }}</p>
+{% empty %}
+    <p>No one has accepted yet.</p>
+{% endfor %}
+
+<p><a href="{% url 'event_list' %}">Back to my dinners</a></p>
+{% endblock %}

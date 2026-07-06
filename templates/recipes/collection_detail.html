@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>{{ collection.name }}</h1>
+
+{% for recipe in collection.recipes.all %}
+    <div>
+        <h3><a href="{% url 'recipe_detail' recipe.pk %}">{{ recipe.title }}</a></h3>
+        <form method="post" action="{% url 'collection_toggle_recipe' collection.pk %}" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="recipe_id" value="{{ recipe.pk }}">
+            <button type="submit">Remove</button>
+        </form>
+    </div>
+    <hr>
+{% empty %}
+    <p>No recipes in this collection yet. Add some from a recipe's page.</p>
+{% endfor %}
+
+<p><a href="{% url 'collection_list' %}">Back to collections</a></p>
+{% endblock %}

@@ -22,9 +22,9 @@
  
 # Design
 ```plaintext
-recipe_project/
+recipe/
 ├── manage.py
-├── recipe_project/
+├── recipe/
 │   ├── __init__.py
 │   ├── settings.py
 │   ├── urls.py
