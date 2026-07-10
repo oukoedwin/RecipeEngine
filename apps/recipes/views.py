@@ -2,14 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
-from django.db.models import Count
-from .models import Recipe, RecipeLike, RecipeComment, RecipeMade, RecipeCollection
+from .models import Recipe, RecipeCollection
 from .forms import (
     RecipeForm, RecipeSearchForm, RecipeCommentForm, RecipeMadeForm, RecipeCollectionForm,
 )
-from .services import RecipeSearchService
+from .services import RecipeSearchService, RecipeService, CollectionService
 from apps.recommendations.services import RecipeEmbeddingService, FriendRecommendationService
-from django.core.cache import cache
 
 @login_required
 def recipe_list(request):
@@ -41,21 +39,16 @@ def recipe_create(request):
         form = RecipeForm(request.POST, request.FILES)
         if form.is_valid():
             recipe = form.save(commit=False)
-            recipe.creator = request.user
-            recipe.embedding = RecipeEmbeddingService.create_embedding(recipe)
-            recipe.save()
+            RecipeService.finalize_and_save(recipe, creator=request.user)
             return redirect('recipe_detail', pk=recipe.pk)
     else:
         form = RecipeForm()
-    
+
     return render(request, 'recipes/create.html', {'form': form})
 
 def recipe_detail(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
-    user_has_liked = (
-        request.user.is_authenticated
-        and recipe.recipelike_set.filter(user=request.user).exists()
-    )
+    user_has_liked = RecipeService.user_has_liked(recipe, request.user)
     similar_recipes = RecipeEmbeddingService.find_similar_recipes(recipe, limit=5)
     user_collections = (
         RecipeCollection.objects.filter(owner=request.user)
@@ -78,10 +71,7 @@ def recipe_comment_add(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
     form = RecipeCommentForm(request.POST)
     if form.is_valid():
-        comment = form.save(commit=False)
-        comment.recipe = recipe
-        comment.user = request.user
-        comment.save()
+        RecipeService.add_comment(recipe, request.user, form.cleaned_data['body'])
     return redirect('recipe_detail', pk=recipe.pk)
 
 @login_required
@@ -90,10 +80,11 @@ def recipe_made_add(request, pk):
     if request.method == 'POST':
         form = RecipeMadeForm(request.POST, request.FILES)
         if form.is_valid():
-            made = form.save(commit=False)
-            made.recipe = recipe
-            made.user = request.user
-            made.save()
+            RecipeService.add_made_post(
+                recipe, request.user,
+                photo=form.cleaned_data.get('photo'),
+                note=form.cleaned_data.get('note', ''),
+            )
             return redirect('recipe_detail', pk=recipe.pk)
     else:
         form = RecipeMadeForm()
@@ -107,8 +98,7 @@ def recipe_edit(request, pk):
         form = RecipeForm(request.POST, request.FILES, instance=recipe)
         if form.is_valid():
             recipe = form.save(commit=False)
-            recipe.embedding = RecipeEmbeddingService.create_embedding(recipe)
-            recipe.save()
+            RecipeService.finalize_and_save(recipe)
             return redirect('recipe_detail', pk=recipe.pk)
     else:
         form = RecipeForm(instance=recipe)
@@ -126,27 +116,12 @@ def recipe_delete(request, pk):
 @login_required
 def recipe_like(request, pk):
     recipe = get_object_or_404(Recipe, pk=pk)
-    like, created = RecipeLike.objects.get_or_create(user=request.user, recipe=recipe)
-    
-    if not created:
-        like.delete()
-        liked = False
-    else:
-        liked = True
-    
-    return JsonResponse({'liked': liked, 'like_count': recipe.recipelike_set.count()})
+    liked, like_count = RecipeService.toggle_like(request.user, recipe)
+    return JsonResponse({'liked': liked, 'like_count': like_count})
 
 
 def popular_recipes(request):
-    cache_key = 'popular_recipes'
-    recipes = cache.get(cache_key)
-
-    if recipes is None:
-        recipes = Recipe.objects.annotate(
-            like_count=Count('recipelike')
-        ).order_by('-like_count')[:20]
-        cache.set(cache_key, recipes, 3600)  # Cache for 1 hour
-
+    recipes = RecipeService.get_popular_recipes()
     return render(request, 'recipes/popular.html', {'recipes': recipes})
 
 
@@ -180,8 +155,5 @@ def collection_toggle_recipe(request, pk):
     """Add/remove the recipe named by POST['recipe_id'] from collection `pk`."""
     collection = get_object_or_404(RecipeCollection, pk=pk, owner=request.user)
     recipe = get_object_or_404(Recipe, pk=request.POST.get('recipe_id'))
-    if collection.recipes.filter(pk=recipe.pk).exists():
-        collection.recipes.remove(recipe)
-    else:
-        collection.recipes.add(recipe)
+    CollectionService.toggle_recipe(collection, recipe)
     return redirect('recipe_detail', pk=recipe.pk)

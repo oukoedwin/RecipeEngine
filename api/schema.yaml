@@ -1,0 +1,1343 @@
+openapi: 3.0.3
+info:
+  title: RecipeEngine API
+  version: 1.0.0
+  description: API for the RecipeEngine recipe-sharing and dinner-coordination app.
+paths:
+  /api/v1/accounts/friends/:
+    get:
+      operationId: accounts_friends_list
+      tags:
+      - accounts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Friendship'
+          description: ''
+  /api/v1/accounts/friends/{id}/remove/:
+    delete:
+      operationId: accounts_friends_remove_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - accounts
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/accounts/friends/add/:
+    post:
+      operationId: accounts_friends_add_create
+      tags:
+      - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FriendUsername'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/FriendUsername'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/FriendUsername'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Friendship'
+          description: ''
+  /api/v1/accounts/register/:
+    post:
+      operationId: accounts_register_create
+      description: |-
+        POST username/password -> creates the user and returns an auth token.
+        (The web `register` view calls `login()` for a session instead — see
+        apps/accounts/services.py for why that isn't a shared service method.)
+      tags:
+      - accounts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Token'
+          description: ''
+  /api/v1/auth/token/:
+    post:
+      operationId: auth_token_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthToken'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthToken'
+          description: ''
+  /api/v1/recipes/collections/:
+    get:
+      operationId: recipes_collections_list
+      description: |-
+        List/create/retrieve only — the web app has no collection rename/delete view,
+        so the API doesn't expose one either (see collection_toggle_recipe for the one
+        mutation collections do support).
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipeCollection'
+          description: ''
+    post:
+      operationId: recipes_collections_create
+      description: |-
+        List/create/retrieve only — the web app has no collection rename/delete view,
+        so the API doesn't expose one either (see collection_toggle_recipe for the one
+        mutation collections do support).
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCollection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeCollection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeCollection'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCollection'
+          description: ''
+  /api/v1/recipes/collections/{id}/:
+    get:
+      operationId: recipes_collections_retrieve
+      description: |-
+        List/create/retrieve only — the web app has no collection rename/delete view,
+        so the API doesn't expose one either (see collection_toggle_recipe for the one
+        mutation collections do support).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe collection.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCollection'
+          description: ''
+  /api/v1/recipes/collections/{id}/toggle_recipe/:
+    post:
+      operationId: recipes_collections_toggle_recipe_create
+      description: |-
+        List/create/retrieve only — the web app has no collection rename/delete view,
+        so the API doesn't expose one either (see collection_toggle_recipe for the one
+        mutation collections do support).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe collection.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCollection'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeCollection'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeCollection'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeCollection'
+          description: ''
+  /api/v1/recipes/recipes/:
+    get:
+      operationId: recipes_recipes_list
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipeList'
+          description: ''
+    post:
+      operationId: recipes_recipes_create
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+  /api/v1/recipes/recipes/{id}/:
+    get:
+      operationId: recipes_recipes_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+    put:
+      operationId: recipes_recipes_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+    patch:
+      operationId: recipes_recipes_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedRecipeDetail'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+    delete:
+      operationId: recipes_recipes_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/recipes/recipes/{id}/comments/:
+    get:
+      operationId: recipes_recipes_comments_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+    post:
+      operationId: recipes_recipes_comments_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+  /api/v1/recipes/recipes/{id}/like/:
+    post:
+      operationId: recipes_recipes_like_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+  /api/v1/recipes/recipes/{id}/made/:
+    get:
+      operationId: recipes_recipes_made_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+    post:
+      operationId: recipes_recipes_made_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this recipe.
+        required: true
+      tags:
+      - recipes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/RecipeDetail'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetail'
+          description: ''
+  /api/v1/recipes/recipes/popular/:
+    get:
+      operationId: recipes_recipes_popular_retrieve
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecipeList'
+          description: ''
+  /api/v1/recipes/vocabulary/:
+    get:
+      operationId: recipes_vocabulary_retrieve
+      description: |-
+        The fixed ingredient/cooking-tech/dietary-tag vocabularies, so a client builds
+        its pickers from the server's list instead of hardcoding a copy that can drift.
+      tags:
+      - recipes
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vocabulary'
+          description: ''
+  /api/v1/social/dishes/{id}/claim/:
+    post:
+      operationId: social_dishes_claim_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - social
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DishClaimResponse'
+          description: ''
+  /api/v1/social/events/:
+    get:
+      operationId: social_events_list
+      description: List/create/retrieve only — the web app has no event edit/delete
+        view either.
+      tags:
+      - social
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DinnerEvent'
+          description: ''
+    post:
+      operationId: social_events_create
+      description: List/create/retrieve only — the web app has no event edit/delete
+        view either.
+      tags:
+      - social
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DinnerEvent'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DinnerEvent'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DinnerEvent'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DinnerEvent'
+          description: ''
+  /api/v1/social/events/{id}/:
+    get:
+      operationId: social_events_retrieve
+      description: List/create/retrieve only — the web app has no event edit/delete
+        view either.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this dinner event.
+        required: true
+      tags:
+      - social
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DinnerEvent'
+          description: ''
+  /api/v1/social/events/{id}/ics/:
+    get:
+      operationId: social_events_ics_retrieve
+      description: List/create/retrieve only — the web app has no event edit/delete
+        view either.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this dinner event.
+        required: true
+      tags:
+      - social
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DinnerEvent'
+          description: ''
+  /api/v1/social/events/{id}/respond/:
+    post:
+      operationId: social_events_respond_create
+      description: List/create/retrieve only — the web app has no event edit/delete
+        view either.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this dinner event.
+        required: true
+      tags:
+      - social
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DinnerEvent'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DinnerEvent'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DinnerEvent'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DinnerEvent'
+          description: ''
+  /api/v1/social/events/invited/:
+    get:
+      operationId: social_events_invited_retrieve
+      description: List/create/retrieve only — the web app has no event edit/delete
+        view either.
+      tags:
+      - social
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DinnerEvent'
+          description: ''
+components:
+  schemas:
+    AuthToken:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+        password:
+          type: string
+          writeOnly: true
+        token:
+          type: string
+          readOnly: true
+      required:
+      - password
+      - token
+      - username
+    CookingTechnologiesEnum:
+      enum:
+      - Oven
+      - Grill
+      - Microwave
+      type: string
+      description: |-
+        * `Oven` - Oven
+        * `Grill` - Grill
+        * `Microwave` - Microwave
+    DietaryTagsEnum:
+      enum:
+      - Vegetarian
+      - Vegan
+      - Gluten-Free
+      - Dairy-Free
+      - Nut-Free
+      - Halal
+      - Kosher
+      type: string
+      description: |-
+        * `Vegetarian` - Vegetarian
+        * `Vegan` - Vegan
+        * `Gluten-Free` - Gluten-Free
+        * `Dairy-Free` - Dairy-Free
+        * `Nut-Free` - Nut-Free
+        * `Halal` - Halal
+        * `Kosher` - Kosher
+    DinnerEvent:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        host:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        date:
+          type: string
+          format: date
+        time:
+          type: string
+          format: time
+        location:
+          type: string
+          maxLength: 255
+        dishes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EventDish'
+          readOnly: true
+        accepted_guests:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+          readOnly: true
+        user_invite:
+          allOf:
+          - $ref: '#/components/schemas/EventInvite'
+          nullable: true
+          readOnly: true
+        recipe_ids:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+        recipient_ids:
+          type: array
+          items:
+            type: integer
+          writeOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - accepted_guests
+      - created_at
+      - date
+      - dishes
+      - host
+      - id
+      - time
+      - title
+      - user_invite
+    DishClaimResponse:
+      type: object
+      description: Schema-only — describes EventDishClaimView's response shape.
+      properties:
+        claimed:
+          type: boolean
+      required:
+      - claimed
+    EventDish:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        recipe:
+          allOf:
+          - $ref: '#/components/schemas/RecipeList'
+          readOnly: true
+        claimed_by:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+      required:
+      - claimed_by
+      - id
+      - recipe
+    EventInvite:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        recipient:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        status:
+          allOf:
+          - $ref: '#/components/schemas/StatusEnum'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        responded_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - id
+      - recipient
+      - responded_at
+      - status
+    FriendUsername:
+      type: object
+      properties:
+        username:
+          type: string
+      required:
+      - username
+    Friendship:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        friend:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - friend
+      - id
+    IngredientsEnum:
+      enum:
+      - Chicken
+      - Beef
+      - Pork
+      - Fish
+      - Shrimp
+      - Rice
+      - Pasta
+      - Potato
+      - Bread
+      - Tortilla
+      - Egg
+      - Cheese
+      - Milk
+      - Butter
+      - Olive Oil
+      - Tomato
+      - Onion
+      - Garlic
+      - Bell Pepper
+      - Spinach
+      type: string
+      description: |-
+        * `Chicken` - Chicken
+        * `Beef` - Beef
+        * `Pork` - Pork
+        * `Fish` - Fish
+        * `Shrimp` - Shrimp
+        * `Rice` - Rice
+        * `Pasta` - Pasta
+        * `Potato` - Potato
+        * `Bread` - Bread
+        * `Tortilla` - Tortilla
+        * `Egg` - Egg
+        * `Cheese` - Cheese
+        * `Milk` - Milk
+        * `Butter` - Butter
+        * `Olive Oil` - Olive Oil
+        * `Tomato` - Tomato
+        * `Onion` - Onion
+        * `Garlic` - Garlic
+        * `Bell Pepper` - Bell Pepper
+        * `Spinach` - Spinach
+    PatchedRecipeDetail:
+      type: object
+      description: Lightweight shape used for list/search results and nested "similar
+        recipes".
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        creator:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        servings:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        time_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientsEnum'
+        cooking_technologies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CookingTechnologiesEnum'
+        dietary_tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/DietaryTagsEnum'
+        picture:
+          type: string
+          format: uri
+          nullable: true
+        like_count:
+          type: integer
+          readOnly: true
+        missing_ingredients:
+          type: array
+          items:
+            type: string
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        instructions:
+          type: string
+        user_has_liked:
+          type: boolean
+          readOnly: true
+        similar_recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeList'
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeComment'
+          readOnly: true
+        made_posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeMade'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    RecipeCollection:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 200
+        recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeList'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - recipes
+    RecipeComment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        body:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - body
+      - created_at
+      - id
+      - user
+    RecipeDetail:
+      type: object
+      description: Lightweight shape used for list/search results and nested "similar
+        recipes".
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        creator:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        servings:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        time_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientsEnum'
+        cooking_technologies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CookingTechnologiesEnum'
+        dietary_tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/DietaryTagsEnum'
+        picture:
+          type: string
+          format: uri
+          nullable: true
+        like_count:
+          type: integer
+          readOnly: true
+        missing_ingredients:
+          type: array
+          items:
+            type: string
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        instructions:
+          type: string
+        user_has_liked:
+          type: boolean
+          readOnly: true
+        similar_recipes:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeList'
+          readOnly: true
+        comments:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeComment'
+          readOnly: true
+        made_posts:
+          type: array
+          items:
+            $ref: '#/components/schemas/RecipeMade'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - comments
+      - created_at
+      - creator
+      - id
+      - ingredients
+      - instructions
+      - like_count
+      - made_posts
+      - missing_ingredients
+      - similar_recipes
+      - time_minutes
+      - title
+      - updated_at
+      - user_has_liked
+    RecipeList:
+      type: object
+      description: Lightweight shape used for list/search results and nested "similar
+        recipes".
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        title:
+          type: string
+          maxLength: 200
+        creator:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        servings:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        time_minutes:
+          type: integer
+          maximum: 2147483647
+          minimum: -2147483648
+        ingredients:
+          type: array
+          items:
+            $ref: '#/components/schemas/IngredientsEnum'
+        cooking_technologies:
+          type: array
+          items:
+            $ref: '#/components/schemas/CookingTechnologiesEnum'
+        dietary_tags:
+          type: array
+          items:
+            $ref: '#/components/schemas/DietaryTagsEnum'
+        picture:
+          type: string
+          format: uri
+          nullable: true
+        like_count:
+          type: integer
+          readOnly: true
+        missing_ingredients:
+          type: array
+          items:
+            type: string
+          nullable: true
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - creator
+      - id
+      - ingredients
+      - like_count
+      - missing_ingredients
+      - time_minutes
+      - title
+    RecipeMade:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/User'
+          readOnly: true
+        photo:
+          type: string
+          format: uri
+          nullable: true
+        note:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - user
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        password1:
+          type: string
+          writeOnly: true
+        password2:
+          type: string
+          writeOnly: true
+      required:
+      - password1
+      - password2
+      - username
+    StatusEnum:
+      enum:
+      - pending
+      - accepted
+      - declined
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `accepted` - Accepted
+        * `declined` - Declined
+    Token:
+      type: object
+      properties:
+        token:
+          type: string
+      required:
+      - token
+    User:
+      type: object
+      description: |-
+        Minimal, read-only — used for nested display (creator, host, recipient, etc.)
+        across every other app's serializers.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+      required:
+      - id
+      - username
+    Vocabulary:
+      type: object
+      description: Schema-only — describes VocabularyView's static response shape.
+      properties:
+        ingredients:
+          type: array
+          items:
+            type: string
+        cooking_technologies:
+          type: array
+          items:
+            type: string
+        dietary_tags:
+          type: array
+          items:
+            type: string
+      required:
+      - cooking_technologies
+      - dietary_tags
+      - ingredients
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"

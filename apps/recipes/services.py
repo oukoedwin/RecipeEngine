@@ -1,6 +1,8 @@
 from django.contrib.postgres.search import TrigramSimilarity
+from django.core.cache import cache
 from django.db.models import Q, Count
-from .models import Recipe
+from .models import Recipe, RecipeLike, RecipeComment, RecipeMade
+from apps.recommendations.services import RecipeEmbeddingService
 
 # Postgres' own default threshold for the pg_trgm `%` similarity operator.
 TITLE_SIMILARITY_THRESHOLD = 0.3
@@ -79,3 +81,60 @@ class RecipeSearchService:
 
         ranked.sort(key=lambda r: (len(r.missing_ingredients), -r.like_count))
         return ranked
+
+
+class RecipeService:
+    """Business logic shared by the template views (apps/recipes/views.py) and the
+    API views (apps/recipes/api_views.py) — kept HTTP-agnostic so both callers can
+    reuse it without duplicating behavior."""
+
+    @classmethod
+    def finalize_and_save(cls, recipe, creator=None):
+        """Common tail end of creating/editing a recipe: assign the creator (for a new
+        recipe), (re)compute the embedding from current field values, and save."""
+        if creator is not None:
+            recipe.creator = creator
+        recipe.embedding = RecipeEmbeddingService.create_embedding(recipe)
+        recipe.save()
+        return recipe
+
+    @classmethod
+    def toggle_like(cls, user, recipe):
+        like, created = RecipeLike.objects.get_or_create(user=user, recipe=recipe)
+        if not created:
+            like.delete()
+        return created, recipe.recipelike_set.count()
+
+    @classmethod
+    def user_has_liked(cls, recipe, user):
+        return user.is_authenticated and recipe.recipelike_set.filter(user=user).exists()
+
+    @classmethod
+    def add_comment(cls, recipe, user, body):
+        return RecipeComment.objects.create(recipe=recipe, user=user, body=body)
+
+    @classmethod
+    def add_made_post(cls, recipe, user, photo=None, note=''):
+        return RecipeMade.objects.create(recipe=recipe, user=user, photo=photo, note=note)
+
+    @classmethod
+    def get_popular_recipes(cls):
+        cache_key = 'popular_recipes'
+        recipes = cache.get(cache_key)
+        if recipes is None:
+            recipes = Recipe.objects.annotate(
+                like_count=Count('recipelike')
+            ).order_by('-like_count')[:20]
+            cache.set(cache_key, recipes, 3600)  # Cache for 1 hour
+        return recipes
+
+
+class CollectionService:
+    @classmethod
+    def toggle_recipe(cls, collection, recipe):
+        """Add/remove `recipe` from `collection`. Returns True if now included."""
+        if collection.recipes.filter(pk=recipe.pk).exists():
+            collection.recipes.remove(recipe)
+            return False
+        collection.recipes.add(recipe)
+        return True

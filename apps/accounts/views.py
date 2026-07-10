@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_http_methods
 from .models import Friendship
 from .forms import CustomUserCreationForm
+from .services import FriendshipService, UserNotFound, CannotAddSelf
 
 User = get_user_model()
 
@@ -32,20 +33,18 @@ def friend_list(request):
 def friend_add(request):
     username = request.POST.get('username', '').strip()
     try:
-        friend = User.objects.get(username=username)
-    except User.DoesNotExist:
+        friendship, created = FriendshipService.add_friend(request.user, username)
+    except UserNotFound:
         messages.error(request, f"No user found with username '{username}'.")
         return redirect('friend_list')
-
-    if friend == request.user:
+    except CannotAddSelf:
         messages.error(request, "You can't add yourself as a friend.")
         return redirect('friend_list')
 
-    _, created = Friendship.objects.get_or_create(user1=request.user, user2=friend)
     if created:
-        messages.success(request, f"Added {friend.username} as a friend.")
+        messages.success(request, f"Added {friendship.user2.username} as a friend.")
     else:
-        messages.info(request, f"{friend.username} is already a friend.")
+        messages.info(request, f"{friendship.user2.username} is already a friend.")
     return redirect('friend_list')
 
 @login_required

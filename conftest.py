@@ -1,5 +1,7 @@
 import pytest
 from django.contrib.auth import get_user_model
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
 
 from apps.recipes.constants import COOKING_TECHNOLOGY_CHOICES, INGREDIENT_CHOICES
 from apps.recipes.models import Recipe
@@ -52,3 +54,21 @@ def recipe_factory(db):
         return recipe
 
     return make
+
+
+@pytest.fixture
+def api_client_as(db):
+    """Callable fixture: api_client_as(user) -> APIClient authenticated as that user
+    via a DRF auth token (mirrors how a real client would authenticate)."""
+    def make(user):
+        client = APIClient()
+        token, _ = Token.objects.get_or_create(user=user)
+        client.credentials(HTTP_AUTHORIZATION=f'Token {token.key}')
+        return client
+
+    return make
+
+
+@pytest.fixture
+def api_client(user, api_client_as):
+    return api_client_as(user)
